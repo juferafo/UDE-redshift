@@ -7,33 +7,77 @@ import boto3
 import configparser
 import json
 
-def iamS3(iam, REGION_NAME, KEY, SECRET):
+
+class aws_config(str):
+
+    def __init__(self, config_path):
+        config = configparser.ConfigParser()
+        config.read_file(open(config_path))
+        
+        # AWS_SECURITY
+        self.key = config.get('AWS_SECURITY','KEY')
+        self.secret = config.get('AWS_SECURITY','SECRET')
+
+        # CLUSTER_PROPERTIES
+        self.region_name            = config.get('CLUSTER_PROPERTIES','REGION_NAME')
+        self.dwh_cluster_type       = config.get("CLUSTER_PROPERTIES","DWH_CLUSTER_TYPE")
+        self.dwh_num_nodes          = config.get("CLUSTER_PROPERTIES","DWH_NUM_NODES")
+        self.dwh_node_type          = config.get("CLUSTER_PROPERTIES","DWH_NODE_TYPE")
+        self.dwh_cluster_identifier = config.get("CLUSTER_PROPERTIES","DWH_CLUSTER_IDENTIFIER")
+        self.db_name                = config.get("CLUSTER_PROPERTIES","DB_NAME")
+        self.db_user                = config.get("CLUSTER_PROPERTIES","DB_USER")
+        self.db_password            = config.get("CLUSTER_PROPERTIES","DB_PASSWORD")
+        self.db_port                = config.get("CLUSTER_PROPERTIES","DB_PORT")
+
+        # IAM_ROLE
+        self.iam_arn           = config.get('IAM_ROLE','ARN')
+        self.iam_role_name = config.get('IAM_ROLE','IAM_ROLE_NAME')
+        
+
+class aws(aws_config):
+    
+    def __init__(self, aws_config):
+        
+        aws.iam = boto3.client('iam',\
+                               region_name=aws_config.region_name,\
+                               aws_access_key_id=aws_config.key,\
+                               aws_secret_access_key=aws_config.secret\
+                              )
+
+        aws.redshift = boto3.client('redshift',\
+                                    region_name=aws_config.region_name,\
+                                    aws_access_key_id=aws_config.key,\
+                                    aws_secret_access_key=aws_config.secret\
+                                   )
+        
+
+def iamS3(iam, config):
     """
     This method creates a iam role that allows Redshift to read data from S3.
     """
     
     iamrole_dwhS3 = iam.create_role(
         Path='/',
-        RoleName='dwhRole',
+        RoleName=config.iam_role_name,
         Description = "Allows Redshift clusters to call AWS services on your behalf.",
         AssumeRolePolicyDocument=json.dumps(
             {'Statement': [{'Action': 'sts:AssumeRole',
-               'Effect': 'Allow',
-               'Principal': {'Service': 'redshift.amazonaws.com'}}],
+                            'Effect': 'Allow',
+                            'Principal': {'Service': 'redshift.amazonaws.com'}}],
              'Version': '2012-10-17'})
     )    
-    
-    
-    iam.attach_role_policy(RoleName='dwhRole',
-                       PolicyArn="arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
-                      )['ResponseMetadata']['HTTPStatusCode']
+     
+    iam.attach_role_policy(
+        RoleName=config.iam_role_name,
+        PolicyArn=config.iam_arn
+    )['ResponseMetadata']['HTTPStatusCode']
 
-    rolearn_dwhS3 = iam.get_role(RoleName='dwhRole')['Role']['Arn']
+    rolearn_dwhS3 = iam.get_role(RoleName=config.iam_role_name)['Role']['Arn']
     
     return rolearn_dwhS3
 
 
-def create_redshift(redshift, KEY, SECRET, ROLE_ARN):
+def create_redshift(redshift, config, role_arn):
     """
     This method is used to create a Redshift cluster.
     
@@ -43,95 +87,51 @@ def create_redshift(redshift, KEY, SECRET, ROLE_ARN):
         SECRET (str):
     """
     
-    response = redshift.create_cluster(        
-        #HW
-        ClusterType=DWH_CLUSTER_TYPE,
-        NodeType=DWH_NODE_TYPE,
-        NumberOfNodes=int(DWH_NUM_NODES),
-
-        #Identifiers & Credentials
-        DBName=DWH_DB,
-        ClusterIdentifier=DWH_CLUSTER_IDENTIFIER,
-        MasterUsername=DWH_DB_USER,
-        MasterUserPassword=DWH_DB_PASSWORD,
-        
-        #Roles (for s3 access)
-        IamRoles=[roleArn]  
+    response = redshift.create_cluster(     
+        ClusterType       =config.dwh_cluster_type,
+        NodeType          =config.dwh_node_type,
+        NumberOfNodes     =int(config.dwh_num_nodes),
+        DBName            =config.db_name,
+        ClusterIdentifier =config.dwh_cluster_identifier,
+        MasterUsername    =config.db_user,
+        MasterUserPassword=config.db_password,
+        IamRoles          =[role_arn]  
     )
-    
-    return None
 
     
-def cleanup_iam(iam, ROLE_NAME, REGION_NAME, KEY, SECRET):
+def cleanup_iam(iam, config):
     """
-    This method deletes the iam role provided.
+    This method deletes the iam role
     
     Args:
     
     """
     
-    iam.detach_role_policy(RoleName=ROLE_NAME, PolicyArn="arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess")
-    iam.delete_role(RoleName=ROLE_NAME)
+    iam.detach_role_policy(RoleName=config.iam_role_name, PolicyArn=config.iam_arn)
+    iam.delete_role(RoleName=config.iam_role_name)
+    
+
+def cleanup_redshift(redshift, config):
+    """
+    This method deletes the redshift cluster
+    """
+    
+    redshift.delete_cluster(ClusterIdentifier=config.dwh_cluster_identifier, SkipFinalClusterSnapshot=True)
     
     
-config = configparser.ConfigParser()
-config.read_file(open('../dwh.cfg'))
+# Reading configuration parameters
+config_path = '../dwh.cfg'
+config = aws_config(config_path)
 
-# AWS_SECURITY
-KEY = config.get('AWS_SECURITY','KEY')
-SECRET = config.get('AWS_SECURITY','SECRET')
+# aws object with iam and redshift clients generated from the config paramenters
+aws_clients = aws(config)
 
-# CLUSTER_PROPERTIES
-REGION_NAME = config.get('CLUSTER_PROPERTIES','REGION_NAME')
+# attaching the "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess" policy to the redshift role
+# creating a Redshift cluster with such a role will allow it to read data from S3
+role_arn = iamS3(aws_clients.iam, config)
 
-DWH_CLUSTER_TYPE       = config.get("DWH","DWH_CLUSTER_TYPE")
-DWH_NUM_NODES          = config.get("DWH","DWH_NUM_NODES")
-DWH_NODE_TYPE          = config.get("DWH","DWH_NODE_TYPE")
+create_redshift(aws_clients.redshift, config, role_arn)
 
-DWH_CLUSTER_IDENTIFIER = config.get("DWH","DWH_CLUSTER_IDENTIFIER")
-DWH_DB                 = config.get("DWH","DWH_DB")
-DWH_DB_USER            = config.get("DWH","DWH_DB_USER")
-DWH_DB_PASSWORD        = config.get("DWH","DWH_DB_PASSWORD")
-DWH_PORT               = config.get("DWH","DWH_PORT")
-
-DWH_IAM_ROLE_NAME      = config.get("DWH", "DWH_IAM_ROLE_NAME")
-
-
-
-[DWH] 
-DWH_CLUSTER_TYPE=multi-node
-DWH_NUM_NODES=4
-DWH_NODE_TYPE=dc2.large
-
-DWH_IAM_ROLE_NAME=dwhRole
-DWH_CLUSTER_IDENTIFIER=dwhCluster
-DWH_DB=dwh
-DWH_DB_USER=dwhuser
-DWH_DB_PASSWORD=Chou*7pou!!echo4
-DWH_PORT=5439
-
-
-
-# IAM_ROLE
-DWH_IAM_ROLE_NAME = config.get('IAM_ROLE','DWH_IAM_ROLE_NAME')
-
-# AWS clients
-
-iam = boto3.client('iam',\
-                   region_name=REGION_NAME,\
-                   aws_access_key_id=KEY,\
-                   aws_secret_access_key=SECRET\
-                  )
-
-redshift = boto3.client('redshift',\
-                        region_name=REGION_NAME,\
-                        aws_access_key_id=KEY,\
-                        aws_secret_access_key=SECRET\
-                       )
-
-ROLE_ARN = iamS3(iam, REGION_NAME, KEY, SECRET)
-
-create_redshift(redshift, REGION_NAME, KEY, SECRET, ROLE_ARN)
-
-#cleanup_redshift()
-cleanup_iam(iam, DWH_IAM_ROLE_NAME, REGION_NAME, KEY, SECRET)
+# Cleanup resources
+#cleanup_iam(aws_clients.iam, config)
+#cleanup_redshift(aws_clients.redshift, config)
