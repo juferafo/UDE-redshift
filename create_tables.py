@@ -10,7 +10,7 @@ def drop_tables(cur, conn):
     To this end, the queries included in the global parameter drop_table_queries are executed.
     """
     
-    print("Dropping database tables\n")
+    print("\nDropping database tables\n")
     for query in drop_table_queries:
         print(query)
         cur.execute(query)
@@ -58,7 +58,7 @@ def main():
     print("Connection established to the cluster: redshift://{}:{}/{}".format(host,\
                                                                               config.db_port,\
                                                                               config.db_name))
-    #drop_tables(cur, conn)
+    drop_tables(cur, conn)
     #create_tables(cur, conn)
 
     conn.close()
