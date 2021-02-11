@@ -10,7 +10,7 @@ def drop_tables(cur, conn):
     To this end, the queries included in the global parameter drop_table_queries are executed.
     """
     
-    print("\nDropping database tables\n")
+    print("\nDropping tables\n")
     for query in drop_table_queries:
         print(query)
         cur.execute(query)
@@ -23,7 +23,9 @@ def create_tables(cur, conn):
     To this end, the queries included in the global parameter create_table_queries are executed.
     """
     
+    print("\nCreating tables\n")
     for query in create_table_queries:
+        print(query)
         cur.execute(query)
         conn.commit()
 
@@ -59,7 +61,7 @@ def main():
                                                                               config.db_port,\
                                                                               config.db_name))
     drop_tables(cur, conn)
-    #create_tables(cur, conn)
+    create_tables(cur, conn)
 
     conn.close()
 
