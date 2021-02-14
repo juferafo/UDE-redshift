@@ -18,13 +18,45 @@ time_table_drop = "DROP TABLE IF EXISTS time CASCADE"
 # CREATE TABLES
 
 staging_events_table_create= ("""
+CREATE TABLE IF NOT EXISTS staging_events(
+    artist VARCHAR,
+    auth VARCHAR,
+    firstName VARCHAR,
+    gender VARCHAR,
+    itemInSession INT,
+    lastName VARCHAR,
+    length FLOAT,
+    level VARCHAR,
+    location VARCHAR,
+    method VARCHAR,
+    page VARCHAR,
+    registration BIGINT,
+    sessionId INT,
+    song VARCHAR,
+    status INT,
+    ts BIGINT,
+    userAgent VARCHAR,
+    userId INT
+    )
 """)
 
 staging_songs_table_create = ("""
+CREATE TABLE IF NOT EXISTS staging_songs(
+    num_songs INT,
+    artist_id VARCHAR,
+    artist_latitude INT,
+    artist_longitude INT,
+    artist_location VARCHAR, 
+    artist_name VARCHAR,
+    song_id VARCHAR,
+    title VARCHAR,
+    duration FLOAT,
+    year INT
+    )
 """)
 
 songplay_table_create = ("""
-CREATE TABLE songplays (
+CREATE TABLE IF NOT EXISTS songplays (
     songplay_id INT IDENTITY(1,1),
     start_time BIGINT, 
     user_id INT, 
@@ -115,8 +147,8 @@ time_table_insert = ("""
 
 # QUERY LISTS
 
-#create_table_queries = [staging_events_table_create, staging_songs_table_create, songplay_table_create, user_table_create, song_table_create, artist_table_create, time_table_create]
-create_table_queries = [user_table_create, song_table_create, artist_table_create, time_table_create, songplay_table_create]
+create_table_queries = [staging_events_table_create, staging_songs_table_create, user_table_create, song_table_create, artist_table_create, time_table_create, songplay_table_create]
+#create_table_queries = [user_table_create, song_table_create, artist_table_create, time_table_create, songplay_table_create]
 
 drop_table_queries = [staging_events_table_drop, staging_songs_table_drop, songplay_table_drop, user_table_drop, song_table_drop, artist_table_drop, time_table_drop]
 copy_table_queries = [staging_events_copy, staging_songs_copy]
