@@ -6,6 +6,7 @@ the needed resources to run this repository
 import boto3
 import configparser
 import json
+import psycopg2
 
 class aws_config(str):
     """
@@ -54,6 +55,12 @@ class aws(aws_config):
                                     aws_access_key_id=aws_config.key,\
                                     aws_secret_access_key=aws_config.secret\
                                    )
+        
+        aws.s3 = boto3.resource('s3',\
+                                region_name=aws_config.region_name,\
+                                aws_access_key_id=aws_config.key,\
+                                aws_secret_access_key=aws_config.secret\
+                               )
         
 
 def iamS3(iam, config):
@@ -117,8 +124,8 @@ def create_redshift(redshift, config, role_arn):
     #print("MasterUsername : {}".format(config.db_user)
     #print("MasterUserPassword : {}".format(config.db_password)
     print("IamRoles: {}\n".format(role_arn))
-
-   
+    
+    
 def cleanup_iam(iam, config):
     """
     This method deletes the iam role
@@ -140,3 +147,41 @@ def cleanup_redshift(redshift, config):
     
     redshift.delete_cluster(ClusterIdentifier=config.dwh_cluster_identifier, SkipFinalClusterSnapshot=True)
     print("Redshift cluster {} deleted".format(config.dwh_cluster_identifier))
+    
+
+def redshift_connection(config_path):
+    """
+    This method can be used to connect to the Redshift clusted. 
+    It will make use of the method lib.aws_config to read the ClusterIdentifier, database name, 
+    database uer, database pasword and database port from the configuration file to generate the connection string.
+    To do so, the developed must provide the configuration file path.
+    It returns the connection and cursor object of the Redshift connection so the user can run queries against the database.
+    
+    Args:
+        config_path (str):
+    
+    Returns:
+        conn ():
+        cur ():
+    """
+    
+    config = aws_config(config_path)
+    aws_clients = aws(config)  
+    redshift = aws_clients.redshift
+    
+    cluster_identifier = config.dwh_cluster_identifier
+    redshift_properties = redshift.describe_clusters(ClusterIdentifier=cluster_identifier)['Clusters'][0]
+    
+    host = redshift_properties['Endpoint']['Address']
+    connection_string = "host={} dbname={} user={} password={} port={}".format(host,\
+                                                                               config.db_name,\
+                                                                               config.db_user,\
+                                                                               config.db_password,\
+                                                                               config.db_port)
+    # Careful! This will print a password on the screen!
+    print(connection_string)
+    
+    conn = psycopg2.connect(connection_string)
+    cur = conn.cursor()
+    
+    return conn, cur, aws_clients, config
