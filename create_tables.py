@@ -34,7 +34,13 @@ def main():
     
     # Remember to edit ../dwh.cfg according to your needs!
     config_path = "../dwh.cfg"
-    conn, cur, aws_clients, config = redshift_connection(config_path)
+
+    config = aws_config(config_path)
+    aws_clients = aws(config)
+    
+    redshift = aws_clients.redshift
+    
+    conn, cur = redshift_connection(redshift, config)
     
     drop_tables(cur, conn)
     create_tables(cur, conn)

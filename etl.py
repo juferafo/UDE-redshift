@@ -21,10 +21,10 @@ def load_staging_tables(cur, conn, config):
     print_songs = "\nCopying song data\nS3 URI: {}".format(song_data_uri)
     print_events = "\nCopying event logs\nS3 URI: {}".format(events_data_uri)
     
-    for query, out in zip(copy_table_queries, [print_songs, print_events]):
+    """for query, out in zip(copy_table_queries, [print_songs, print_events]):
         print(out)
         cur.execute(query)
-        conn.commit()
+        conn.commit()"""
 
 
 def insert_tables(cur, conn, config):
@@ -49,7 +49,6 @@ def main():
     aws_clients = aws(config)
     
     redshift = aws_clients.redshift
-    
     
     conn, cur = redshift_connection(redshift, config)
     
