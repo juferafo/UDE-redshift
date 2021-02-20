@@ -33,9 +33,13 @@ class aws_config(str):
         self.db_port                = config.get("CLUSTER_PROPERTIES","DB_PORT")
 
         # IAM_ROLE
-        self.iam_arn           = config.get('IAM_ROLE','ARN')
+        self.iam_arn       = config.get('IAM_ROLE','ARN')
         self.iam_role_name = config.get('IAM_ROLE','IAM_ROLE_NAME')
         
+        # S3
+        self.log_data     = config.get('S3','LOG_DATA')
+        self.log_jsonpath = config.get('S3','LOG_JSONPATH')
+        self.song_data    = config.get('S3','SONG_DATA')
 
 class aws(aws_config):
     """
@@ -149,7 +153,7 @@ def cleanup_redshift(redshift, config):
     print("Redshift cluster {} deleted".format(config.dwh_cluster_identifier))
     
 
-def redshift_connection(config_path):
+def redshift_connection(redshift, config):
     """
     This method can be used to connect to the Redshift clusted. 
     It will make use of the method lib.aws_config to read the ClusterIdentifier, database name, 
@@ -164,11 +168,7 @@ def redshift_connection(config_path):
         conn ():
         cur ():
     """
-    
-    config = aws_config(config_path)
-    aws_clients = aws(config)  
-    redshift = aws_clients.redshift
-    
+        
     cluster_identifier = config.dwh_cluster_identifier
     redshift_properties = redshift.describe_clusters(ClusterIdentifier=cluster_identifier)['Clusters'][0]
     
@@ -184,4 +184,4 @@ def redshift_connection(config_path):
     conn = psycopg2.connect(connection_string)
     cur = conn.cursor()
     
-    return conn, cur, aws_clients, config
+    return conn, cur

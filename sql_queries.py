@@ -1,9 +1,13 @@
 import configparser
+from lib import aws_config, aws
 
 # CONFIG
-config_path = '../dwh.cfg'
+"""config_path = '../dwh.cfg'
 config = configparser.ConfigParser()
-config.read(config_path)
+config.read(config_path)"""
+
+config_path = "../dwh.cfg"
+config = aws_config(config_path)
 
 # DROP TABLES
 
@@ -42,15 +46,15 @@ CREATE TABLE IF NOT EXISTS staging_events(
 
 staging_songs_table_create = ("""
 CREATE TABLE IF NOT EXISTS staging_songs(
-    num_songs INT,
     artist_id VARCHAR,
-    artist_latitude INT,
-    artist_longitude INT,
-    artist_location VARCHAR, 
+    artist_latitude FLOAT,
+    artist_location VARCHAR,
+    artist_longitude FLOAT,
     artist_name VARCHAR,
+    duration FLOAT,
+    num_songs INT,
     song_id VARCHAR,
     title VARCHAR,
-    duration FLOAT,
     year INT
     )
 """)
@@ -122,11 +126,22 @@ CREATE TABLE IF NOT EXISTS time (
 
 # STAGING TABLES
 
+aws_clients = aws(config)
+role_arn_dwhS3 = aws_clients.iam.get_role(RoleName=config.iam_role_name)['Role']['Arn']
+
 staging_events_copy = ("""
-""").format()
+COPY staging_events 
+FROM '{}' 
+iam_role '{}' 
+json '';
+""").format(config.log_data, role_arn_dwhS3, config.log_jsonpath)
 
 staging_songs_copy = ("""
-""").format()
+COPY staging_songs 
+FROM '{}' 
+iam_role '{}' 
+json 'auto';
+""").format(config.song_data, role_arn_dwhS3)
 
 # FINAL TABLES
 
@@ -151,5 +166,6 @@ create_table_queries = [staging_events_table_create, staging_songs_table_create,
 
 drop_table_queries = [staging_events_table_drop, staging_songs_table_drop, songplay_table_drop, user_table_drop, song_table_drop, artist_table_drop, time_table_drop]
 
-copy_table_queries = [staging_events_copy, staging_songs_copy]
+#copy_table_queries = [staging_events_copy, staging_songs_copy]
+copy_table_queries = [staging_songs_copy, '']
 insert_table_queries = [songplay_table_insert, user_table_insert, song_table_insert, artist_table_insert, time_table_insert]
