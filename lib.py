@@ -10,7 +10,26 @@ import psycopg2
 
 class aws_config(str):
     """
-    This class can be used to
+    This class can be used to gather different metadata and other relevant information stored in the configuration 
+    file dwh.cfg into a single object.
+    
+    Attributes:
+        key: AWS secutiry key
+        secret: AWS secret key
+        region_name: name of the region where the Redshift cluster is located
+        dwh_cluster_type: Redshift cluster type
+        dwh_num_nodes: number of nodes
+        dwh_node_type: node configuration type
+        dwh_cluster_identifier: cluster identifier
+        db_name: database name
+        db_user: database user
+        db_password: database password
+        db_port: database connection port
+        iam_arn: IAM ARN role 
+        iam_role_name: IAM ARN role name
+        log_data: S3 log (or events) data path 
+        log_jsonpath: JSON path of log data used in the COPY query
+        song_data: S3 sonce data path 
     """
 
     def __init__(self, config_path):
@@ -41,9 +60,16 @@ class aws_config(str):
         self.log_jsonpath = config.get('S3','LOG_JSONPATH')
         self.song_data    = config.get('S3','SONG_DATA')
 
+        
 class aws(aws_config):
     """
-    This class can be used to
+    This class is designed to build objects that act as entry point of the IAM, Redshift and S3 functionality.
+    For this purpose the different attributes correspond to the boto3 clients of iam, redshift and s3.
+    
+    Attributes:
+        iam: boto3 IAM client
+        redshift: boto3 Redshift client
+        s3: boto3 S3 resource
     """
     
     def __init__(self, aws_config):
@@ -69,7 +95,14 @@ class aws(aws_config):
 
 def iamS3(iam, config):
     """
-    This method creates a iam role that allows Redshift to read data from S3.
+    This method is used to create an iam role that allows Redshift to read data from S3 buckets.
+    
+    Args:
+        iam (botocore.client.IAM): boto3 IAM object
+        config (lib.aws_config): object that contains metadata information about the DWH setup (.cfg file)
+        
+    Returns:
+        rolearn_dwhS3 (str)
     """
     
     iamrole_dwhS3 = iam.create_role(
@@ -102,9 +135,9 @@ def create_redshift(redshift, config, role_arn):
     This method is used to create a Redshift cluster.
     
     Args:
-        REGION_NAME (str):
-        KEY (str):
-        SECRET (str):
+        redshift (botocore.client.Redshift):
+        config (lib.aws_config): object that contains metadata information about the DWH setup (.cfg file)
+        role_arn (str):
     """
     
     response = redshift.create_cluster(     
@@ -132,10 +165,11 @@ def create_redshift(redshift, config, role_arn):
     
 def cleanup_iam(iam, config):
     """
-    This method deletes the iam role
+    This method deletes the iam role that allows Redshift to read the staging log and song data from S3
     
     Args:
-    
+        iam (botocore.client.IAM): boto3 IAM object 
+        config (lib.aws_config): object that contains metadata information about the DWH setup (.cfg file)
     """
     
     iam.detach_role_policy(RoleName=config.iam_role_name, PolicyArn=config.iam_arn)
@@ -146,7 +180,11 @@ def cleanup_iam(iam, config):
     
 def cleanup_redshift(redshift, config):
     """
-    This method deletes the redshift cluster
+    This method deletes the redshift cluster.
+    
+    Args:
+        redshift (botocore.client.Redshift): boto3 Redshift object
+        config (lib.aws_config): object that contains metadata information about the DWH setup (.cfg file)
     """
     
     redshift.delete_cluster(ClusterIdentifier=config.dwh_cluster_identifier, SkipFinalClusterSnapshot=True)
@@ -158,15 +196,15 @@ def redshift_connection(redshift, config):
     This method can be used to connect to the Redshift clusted. 
     It will make use of the method lib.aws_config to read the ClusterIdentifier, database name, 
     database uer, database pasword and database port from the configuration file to generate the connection string.
-    To do so, the developed must provide the configuration file path.
-    It returns the connection and cursor object of the Redshift connection so the user can run queries against the database.
+    It returns the psycopg2 cursor and connection to the Redshift database.
     
     Args:
-        config_path (str):
+        redshift (botocore.client.Redshift): boto3 Redshift object
+        config (lib.aws_config): object that contains metadata information about the DWH setup (.cfg file)
     
     Returns:
-        conn ():
-        cur ():
+        cur (psycopg2.extensions.cursor)
+        conn (psycopg2.extensions.connection)
     """
         
     cluster_identifier = config.dwh_cluster_identifier
@@ -179,7 +217,7 @@ def redshift_connection(redshift, config):
                                                                                config.db_password,\
                                                                                config.db_port)
     # Careful! This will print a password on the screen!
-    print(connection_string)
+    #print(connection_string)
     
     conn = psycopg2.connect(connection_string)
     cur = conn.cursor()

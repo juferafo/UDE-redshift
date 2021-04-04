@@ -8,7 +8,11 @@ from sql_queries import create_table_queries, drop_table_queries
 def drop_tables(cur, conn):
     """
     This method is used to drop all the tables in the database.
-    To this end, the queries included in the global parameter drop_table_queries are executed.
+    To this end, the DROP-like queries included in the parameter drop_table_queries are executed.
+    
+    Args:
+        cur (psycopg2.extensions.cursor): psycopg2 cursor object used to run queries against a database
+        conn (psycopg2.extensions.connection): psycopg2 connection object
     """
     
     print("\nDropping tables\n")
@@ -21,27 +25,36 @@ def drop_tables(cur, conn):
 def create_tables(cur, conn):
     """
     This method is used to create all the tables in the database.
-    To this end, the queries included in the global parameter create_table_queries are executed.
+    To this end, the CREATE-like queries included in the parameter create_table_queries are executed.
+    
+    Args:
+        cur (psycopg2.extensions.cursor): psycopg2 cursor object used to run queries against a database
+        conn (psycopg2.extensions.connection): psycopg2 connection object
     """
     
-    print("\nCreating tables\n")
+    print("\nCreating tables")
     for query in create_table_queries:
         print(query)
         cur.execute(query)
         conn.commit()
+        
 
 def main():
-    
-    # Remember to edit ../dwh.cfg according to your needs!
+    # To be done by the developer: 
+    # Edit the configuration file ../dwh.cfg to fit this code to your set-up
+    # REMEMBER TO NOT EXPOSE TOKENS/PASSWORDS IN GIT/GITHUB!
     config_path = "../dwh.cfg"
 
+    # the aws_config and aws classes can be found in the file lib.py
     config = aws_config(config_path)
     aws_clients = aws(config)
     
     redshift = aws_clients.redshift
     
+    # The method redshift_connection is used to stablish a connection to the Redshift database
     conn, cur = redshift_connection(redshift, config)
     
+    # Drop operation followed by the creation DDLs of the tables that will be hosted in the database
     drop_tables(cur, conn)
     create_tables(cur, conn)
 

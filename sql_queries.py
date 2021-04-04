@@ -2,10 +2,6 @@ import configparser
 from lib import aws_config, aws
 
 # CONFIG
-"""config_path = '../dwh.cfg'
-config = configparser.ConfigParser()
-config.read(config_path)"""
-
 config_path = "../dwh.cfg"
 config = aws_config(config_path)
 
@@ -62,7 +58,7 @@ CREATE TABLE IF NOT EXISTS staging_songs(
 songplay_table_create = ("""
 CREATE TABLE IF NOT EXISTS songplays (
     songplay_id INT IDENTITY(1,1),
-    start_time BIGINT, 
+    start_time TIMESTAMP, 
     user_id INT, 
     level VARCHAR, 
     song_id VARCHAR, 
@@ -113,7 +109,7 @@ CREATE TABLE IF NOT EXISTS artists (
 
 time_table_create = ("""
 CREATE TABLE IF NOT EXISTS time (
-    start_time BIGINT,
+    start_time TIMESTAMP,
     hour INT,
     day INT,
     week INT,
@@ -135,7 +131,6 @@ FROM '{}'
 iam_role '{}' 
 json '{}';
 """).format(config.log_data, role_arn_dwhS3, config.log_jsonpath)
-print(staging_events_copy)
 
 staging_songs_copy = ("""
 COPY staging_songs 
@@ -147,6 +142,32 @@ json 'auto';
 # FINAL TABLES
 
 songplay_table_insert = ("""
+INSERT INTO songplays (
+    start_time, 
+    user_id, 
+    level, 
+    song_id, 
+    artist_id, 
+    session_id, 
+    location, 
+    user_agent
+) SELECT  
+    TIMESTAMP 'epoch' + events_data.ts/1000 * INTERVAL '1 second' AS start_time, 
+    events_data.userId, 
+    events_data.level, 
+    events_data.song,
+    songs_data.artist_id, 
+    events_data.sessionId,
+    events_data.location, 
+    events_data.userAgent
+FROM 
+    staging_events AS events_data, 
+    staging_songs AS songs_data
+WHERE  
+    events_data.song = songs_data.title AND 
+    events_data.artist = songs_data.artist_name AND 
+    events_data.length = songs_data.duration AND
+    events_data.page = 'NextSong'
 """)
 
 user_table_insert = ("""
@@ -203,6 +224,23 @@ FROM
 """)
 
 time_table_insert = ("""
+INSERT INTO time (
+    start_time,
+    hour,
+    day,
+    week,
+    month,
+    year,
+    weekday
+) SELECT  
+    start_time, 
+    EXTRACT(hour FROM start_time),
+    EXTRACT(day FROM start_time),
+    EXTRACT(week FROM start_time),
+    EXTRACT(month FROM start_time),
+    EXTRACT(year FROM start_time),
+    EXTRACT(dayofweek FROM start_time)
+FROM songplays
 """)
 
 # QUERY LISTS
