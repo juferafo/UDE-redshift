@@ -27,26 +27,26 @@ The song dataset is a subset of the [Million Song Dataset](http://millionsongdat
         └── C
 ```
 
-Below you can find an example of the data corresponding to the song ./data/song_data/A/A/A/TRAAAAW128F429D538.json
+Below you can find an example of the information contained in the song data file `song_data/A/A/B/TRAABJL12903CDCF1A.json`.
 
 ```
 {
-   "num_songs":1,
-   "artist_id":"ARD7TVE1187B99BFB1",
-   "artist_latitude":null,
-   "artist_longitude":null,
-   "artist_location":"California - LA",
-   "artist_name":"Casual",
-   "song_id":"SOMZWCG12A8C13C480",
-   "title":"I Didn't Mean To",
-   "duration":218.93179,
-   "year":0
+    "num_songs": 1, 
+    "artist_id": "ARJIE2Y1187B994AB7", 
+    "artist_latitude": null,
+    "artist_longitude": null,
+    "artist_location": "",
+    "artist_name": "Line Renaud",
+    "song_id": "SOUPIRU12A6D4FA1E1",
+    "title": "Der Kleine Dompfaff",
+    "duration": 152.92036,
+    "year": 0
 }
 ```
 
 #### Log dataset
 
-The log dataset
+The log dataset is used to 
 
 ```
 {
