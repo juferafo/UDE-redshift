@@ -46,7 +46,7 @@ Below you can find an example of the information contained in the song data file
 
 #### Log dataset
 
-The log dataset is used to 
+The log dataset contains information about the usage of the application by the customers. This dataset is build from the event simulator [eventsim](https://github.com/Interana/eventsim) and, like the song dataset, the data is stored in JSON files. Below you can find the different fields present in this dataset. As one can expect, from these logs one can derive user-based insights that are key when bussiness deciscissions are made.   
 
 ```
 {
@@ -69,6 +69,11 @@ The log dataset is used to
   userId INT
 }
 ```
+
+For convenience and since this project is based on cloud technologies the aforementioned datasets were placed in a [S3 bucket](https://aws.amazon.com/s3/). Amazon S3 is an object storage service that allows to store high volume data in a way that this one is cost effective, highly available, secure and easy to retrieve from other AWS services like S3. Below you can find the S3 links
+
+* Song data: s3://udacity-dend/song_data
+* Log data: s3://udacity-dend/log_data
 
 ### Data Warehouse structure
 
