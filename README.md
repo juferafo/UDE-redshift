@@ -85,7 +85,11 @@ The Staging area is the place where the input or so-called raw data is located. 
 
 #### Data Warehouse area
 
-The DW area is the final location of the input data. In there, the song and log data will be organized in a [normalized form](https://en.wikipedia.org/wiki/Database_normalization) with the shape of a [star-schema](https://www.guru99.com/star-snowflake-data-warehousing.html). For this purpose, we are going to demine the fact and dimension tables as follows.
+The DW area is the final location of the input data. In there, the song and log data will be organized in a [normalized form](https://en.wikipedia.org/wiki/Database_normalization) with the shape of a [star-schema](https://www.guru99.com/star-snowflake-data-warehousing.html). A database designed with a star-shaped schema is built around the so-called fact-table that in our case contains information of the songs played. Around the fact table we will find the dimension tables that are used to store descriptive material like, for example, for example, artist or user data. 
+
+Below you can find the schema of each table included in the DW area and the star-schema diagram.
+
+##### `songplays` fact table
 
 ```
 songplay_id SERIAL PRIMARY KEY,
@@ -99,13 +103,17 @@ location VARCHAR,
 user_agent VARCHAR
 ```
 
+##### `artist` dimension table
+
 ```
-user_id INT PRIMARY KEY,
-first_name VARCHAR,
-last_name VARCHAR,
-gender VARCHAR,
-level VARCHAR
+artist_id VARCHAR PRIMARY KEY,
+artist_name VARCHAR,
+artist_location VARCHAR,
+artist_latitude INT,
+artist_longitude INT
 ```
+
+#### `song` dimension table
 
 ```
 song_id VARCHAR PRIMARY KEY,
@@ -115,13 +123,7 @@ year INT,
 duration FLOAT
 ```
 
-```
-artist_id VARCHAR PRIMARY KEY,
-artist_name VARCHAR,
-artist_location VARCHAR,
-artist_latitude INT,
-artist_longitude INT
-```
+##### `time` dimension table
 
 ```
 start_time BIGINT PRIMARY KEY,
@@ -133,7 +135,15 @@ year INT,
 weekday INT
 ```
 
-The key difference between the fact and dimension tables lies on the information we can bet from those tables. If we query just the fact table, we will get data related to the songs played by the customers. On the other hand, the dimension tables add descriptive information about different topics related to the songs and users like, for example, artist or user data.
+##### `user` dimension table
+
+```
+user_id INT PRIMARY KEY,
+first_name VARCHAR,
+last_name VARCHAR,
+gender VARCHAR,
+level VARCHAR
+```
 
 ### ETL pipeline
 
