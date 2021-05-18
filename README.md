@@ -77,9 +77,15 @@ For convenience and since this project is based on cloud technologies the aforem
 
 ### Data Warehouse structure
 
+As mentioned earlier, our goal is to bring data located in S3 into the DWH. Widely speaking, we can divide the structure of our system in two areas: the staging area and the DW area.
+
 #### Staging area
 
-#### Data Warehouse schema
+The Staging area is the place where the input or so-called raw data is located. In our case this will be the S3 buckets that host the song and log datasets. In this area the data is in the original format and, as one can imagine, it is necessary to implement set of Extract-Transform-Load (ETL) pipelines to organize the data into the desired format within the target place. A detailed description of the ETL procedure is provide in the next section.
+
+#### Data Warehouse area
+
+The DW area is the final location of the input data. In there, the song and log data will be organized in a [normalized form](https://en.wikipedia.org/wiki/Database_normalization) with the shape of a [star-schema](https://www.guru99.com/star-snowflake-data-warehousing.html). For this purpose, we are going to demine the fact and dimension tables as follows.
 
 ```
 songplay_id SERIAL PRIMARY KEY,
@@ -125,9 +131,9 @@ week INT,
 month INT,
 year INT,
 weekday INT
+```
 
-
-
+The key difference between the fact and dimension tables lies on the information we can bet from those tables. If we query just the fact table, we will get data related to the songs played by the customers. On the other hand, the dimension tables add descriptive information about different topics related to the songs and users like, for example, artist or user data.
 
 ### ETL pipeline
 
