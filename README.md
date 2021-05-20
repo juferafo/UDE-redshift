@@ -214,7 +214,15 @@ IamRoles: arn:aws:iam::273305144712:role/dwhRole
 
 ### Sample queries
 
+### Cleanup
 
+```
+$ python ./aws_cleanup.py 
+IAM policy arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess detached from the role dwhRole
+IAM role dwhRole deleted
+
+Redshift cluster dwhCluster deleted
+```
 
 ## Requirements
 

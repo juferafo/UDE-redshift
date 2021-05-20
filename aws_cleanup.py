@@ -1,5 +1,6 @@
 """
-This script can be used to cleanup the IAM and Redshift resources created
+This script can be used to cleanup the IAM role and Redshift cluster created
+It will only delete the resources specified in the ./dwh.cfg configuration file
 """
 
 import boto3

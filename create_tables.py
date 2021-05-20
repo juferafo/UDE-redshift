@@ -40,9 +40,9 @@ def create_tables(cur, conn):
         
 
 def main():
-    # To be done by the developer: 
-    # Edit the configuration file ../dwh.cfg to fit this code to your set-up
-    # REMEMBER TO NOT EXPOSE TOKENS/PASSWORDS IN GIT/GITHUB!
+    # To be done by the developer/user of this code: 
+    # Edit the configuration file ./dwh.cfg according to your use-case
+    # REMEMBER TO NOT EXPOSE LIVE TOKENS/PASSWORDS IN GIT/GITHUB!
     config_path = "../dwh.cfg"
 
     # the aws_config and aws classes can be found in the file lib.py
