@@ -85,9 +85,7 @@ The Staging area is the place where the input or so-called raw data is located. 
 
 #### Data Warehouse area
 
-The DW area is the final location of the input data. In there, the song and log data will be organized in a [normalized form](https://en.wikipedia.org/wiki/Database_normalization) with the shape of a [star-schema](https://www.guru99.com/star-snowflake-data-warehousing.html). A database designed with a star-shaped schema is built around the so-called fact-table that in our case contains information of the songs played. Around the fact table we will find the dimension tables that are used to store descriptive material like, for example, for example, artist or user data. 
-
-Below you can find the schema of each table included in the DW area and the star-schema diagram.
+The DW area is the final location of the input data. In there, the song and log data will be organized in a [normalized form](https://en.wikipedia.org/wiki/Database_normalization) with the shape of a [star-schema](https://www.guru99.com/star-snowflake-data-warehousing.html). A database designed with a star-shaped schema is built around the so-called fact-table that in our case contains information of the songs played. Around the fact table we will find the dimension tables that are used to store descriptive material like, for example, for example, artist or user data. Below you can find below the schema of each table present in the DW area.
 
 ##### `songplays` fact table
 
@@ -145,6 +143,23 @@ gender VARCHAR,
 level VARCHAR
 ```
 
-### ETL pipeline
+Below you can find an the relation between the dimensions and fact tables that produces the aforementioned star-schema.
 
-### 
+![Database schema structure](./star.png)
+
+### Extract-Transform-Load (ETL) pipeline
+
+An ETL pipeline is a programatic procedure used by data engineers to retrieve data from a particular source (extract), to modify its information in order to meed certain  validation requirements (transform) and to save it into a database or another storage service (load). For our use-case we need also create the tables present in the DW area so the load step is executed successfully. 
+
+
+The different stages of the pipeline are discussed in the below subsections. 
+
+#### Extract
+
+#### Generation of the DW star-schema
+
+#### Transform
+
+#### Load
+
+### Sample queries
