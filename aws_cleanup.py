@@ -2,7 +2,6 @@
 This script can be used to cleanup the IAM and Redshift resources created
 """
 
-
 import boto3
 import configparser
 

@@ -151,15 +151,73 @@ Below you can find an the relation between the dimensions and fact tables that p
 
 An ETL pipeline is a programatic procedure used by data engineers to retrieve data from a particular source (extract), to modify its information in order to meed certain  validation requirements (transform) and to save it into a database or another storage service (load). For our use-case we need also create the tables present in the DW area so the load step is executed successfully. 
 
+The ETL pipeline presented in this repository was coded using Python 3. At the end of this README you can find the requirements to run the Python scripts. The different steps of the ETL process are explained in the following subsections.
 
-The different stages of the pipeline are discussed in the below subsections. 
+#### Creation of AWS resources
+
+In order to work with Redshift it is required first to have a AWS account and to create the resources that we are going to use. This is: a redshift cluster with the role required to retrieve data from S3. The script `./aws_setup.py` was created for this purpose using the AWS Python Library `boto3` and, in addition, some custom methods that can be found in `./lib.py`. 
+
+The creation/deletion and ETL are automatic and retreive sensitive data from the configuration file `./dwh.cfg`. The parameters present in this file are required for the correct execution of the scripts. Below you can find the parameters required in the configuration file:
+
+```
+[CLUSTER_PROPERTIES]
+DB_NAME=sparkify
+DB_USER=***EDITED***
+DB_PASSWORD=***EDITED***
+DB_PORT=***EDITED***
+DWH_CLUSTER_TYPE=multi-node
+DWH_NUM_NODES=4
+DWH_NODE_TYPE=dc2.large
+DWH_CLUSTER_IDENTIFIER=dwhCluster
+REGION_NAME=us-west-2
+
+[IAM_ROLE]
+ARN=arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+IAM_ROLE_NAME=dwhRole
+
+[S3]
+LOG_DATA=s3://udacity-dend/log_data
+LOG_JSONPATH=s3://udacity-dend/log_json_path.json
+SONG_DATA=s3://udacity-dend/song_data/A/A/A
+
+[AWS_SECURITY]
+KEY=***EDITED***
+SECRET=***EDITED***
+```
+
+Running the script `aws_setup.py` will print the following information on the screen:
+
+```
+$ python aws_setup.py
+IAM role dwhRole created
+IAM policy arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess attached to the role dwhRole
+
+Redshift cluster created with properties:
+
+ClusterType: multi-node
+NodeType: dc2.large
+NumberOfNodes: 4
+DBName : sparkify
+ClusterIdentifier: dwhCluster
+IamRoles: arn:aws:iam::273305144712:role/dwhRole
+```
+
+#### Generation of the DW star-schema
 
 #### Extract
 
-#### Generation of the DW star-schema
+
 
 #### Transform
 
 #### Load
 
 ### Sample queries
+
+
+
+## Requirements
+
+1. [`boto3`](https://aws.amazon.com/en/sdk-for-python/)
+2. [`psycopg2`](https://www.psycopg.org/docs/)
+3. [`configparser`](https://docs.python.org/3/library/configparser.html)

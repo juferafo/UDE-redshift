@@ -135,20 +135,20 @@ def create_redshift(redshift, config, role_arn):
     This method is used to create a Redshift cluster.
     
     Args:
-        redshift (botocore.client.Redshift):
+        redshift (botocore.client.Redshift): boto3 Redshift object
         config (lib.aws_config): object that contains metadata information about the DWH setup (.cfg file)
-        role_arn (str):
+        role_arn (str): ARN role that will be attached to the Redshift cluster
     """
     
     response = redshift.create_cluster(     
-        ClusterType       =config.dwh_cluster_type,
-        NodeType          =config.dwh_node_type,
-        NumberOfNodes     =int(config.dwh_num_nodes),
-        DBName            =config.db_name,
-        ClusterIdentifier =config.dwh_cluster_identifier,
-        MasterUsername    =config.db_user,
-        MasterUserPassword=config.db_password,
-        IamRoles          =[role_arn]  
+        ClusterType       = config.dwh_cluster_type,
+        NodeType          = config.dwh_node_type,
+        NumberOfNodes     = int(config.dwh_num_nodes),
+        DBName            = config.db_name,
+        ClusterIdentifier = config.dwh_cluster_identifier,
+        MasterUsername    = config.db_user,
+        MasterUserPassword= config.db_password,
+        IamRoles          = [role_arn]  
     )
     
     print("Redshift cluster created with properties:\n")
@@ -158,6 +158,7 @@ def create_redshift(redshift, config, role_arn):
     print("NumberOfNodes: {}".format(config.dwh_num_nodes))
     print("DBName : {}".format(config.db_name))
     print("ClusterIdentifier: {}".format(config.dwh_cluster_identifier))
+    # Commented for security reasons
     #print("MasterUsername : {}".format(config.db_user)
     #print("MasterUserPassword : {}".format(config.db_password)
     print("IamRoles: {}\n".format(role_arn))
@@ -217,6 +218,7 @@ def redshift_connection(redshift, config):
                                                                                config.db_password,\
                                                                                config.db_port)
     # Careful! This will print a password on the screen!
+    # Commented for security reasons
     #print(connection_string)
     
     conn = psycopg2.connect(connection_string)
