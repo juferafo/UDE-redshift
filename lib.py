@@ -151,7 +151,7 @@ def create_redshift(redshift, config, role_arn):
         IamRoles          = [role_arn]  
     )
     
-    print("Redshift cluster created with properties:\n")
+    print("Redshift cluster created with properties:")
     
     print("ClusterType: {}".format(config.dwh_cluster_type))
     print("NodeType: {}".format(config.dwh_node_type))
