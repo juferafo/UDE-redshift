@@ -145,7 +145,7 @@ level VARCHAR
 
 Below you can find an the relation between the dimensions and fact tables that produces the aforementioned star-schema.
 
-![Database schema structure](./star.png)
+![](./star.png)
 
 ### Extract-Transform-Load (ETL) pipeline
 
