@@ -1,3 +1,7 @@
+"""
+This script is designed to create the DW's tables
+"""
+
 import configparser
 import psycopg2
 import boto3

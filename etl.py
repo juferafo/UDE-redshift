@@ -1,3 +1,13 @@
+"""
+This script encapsulates the ETL pipeline that performs the following actions:
+
+    1. Load data from Amazon S3 into the Stating Area
+            s3://udacity-dend/log_data      -> sparkify:staging_events
+            s3://udacity-dend/staging_songs -> sparkify:staging_songs
+    
+    2. Re-organize the raw data in a star-shaped schema.
+"""
+
 import configparser
 import psycopg2
 from lib import aws_config, aws
@@ -52,15 +62,17 @@ def insert_tables(cur, conn, config):
 
 
 def main():
-    
+    # To be done by the developer/user of this code: 
+    # Edit the configuration file ./dwh.cfg according to your use-case
+    # REMEMBER TO NOT EXPOSE LIVE TOKENS/PASSWORDS IN GIT/GITHUB!
     config_path = "../dwh.cfg"
+    
+    # the aws_config and aws classes can be found in the file lib.py
     config = aws_config(config_path)
     aws_clients = aws(config)
     
     redshift = aws_clients.redshift
-    
     conn, cur = redshift_connection(redshift, config)
-    
     bucket = aws_clients.s3.Bucket("udacity-dend")
     
     # Uncomment these lines to visualize the S3 paths of the song_data
@@ -72,11 +84,13 @@ def main():
     
     rolearn_dwhS3 = aws_clients.iam.get_role(RoleName=config.iam_role_name)['Role']['Arn']
     
-    #load_staging_tables(cur, conn, config)
+    load_staging_tables(cur, conn, config)
     
     insert_tables(cur, conn, config)
 
     conn.close()
+    
+    print("ETL completed")
 
 
 if __name__ == "__main__":
