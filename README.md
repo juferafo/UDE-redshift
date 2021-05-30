@@ -72,8 +72,8 @@ The log dataset contains information about the usage of the application by the c
 
 For convenience and since this project is based on cloud technologies the aforementioned datasets were placed in a [S3 bucket](https://aws.amazon.com/s3/). Amazon S3 is an object storage service that allows to store high volume data in a way that this one is cost effective, highly available, secure and easy to retrieve from other AWS services like S3. Below you can find the S3 links
 
-* Song data: s3://udacity-dend/song_data
-* Log data: s3://udacity-dend/log_data
+* Song data: `s3://udacity-dend/song_data`
+* Log data: `s3://udacity-dend/log_data`
 
 ### Data Warehouse structure
 
@@ -81,71 +81,115 @@ As mentioned earlier, our goal is to bring data located in S3 into the DWH. Wide
 
 #### Staging area
 
-The Staging area is the place where the input or so-called raw data is located. In our case this will be the S3 buckets that host the song and log datasets. In this area the data is in the original format and, as one can imagine, it is necessary to implement set of Extract-Transform-Load (ETL) pipelines to organize the data into the desired format within the target place. A detailed description of the ETL procedure is provide in the next section.
+The Staging area is the place where the input or so-called raw data is located. In our case the stagins area will consist on two tables: `staging_songs` and `staging_events` that will encapsulate the information present in the S3 buckets `s3://udacity-dend/song_data` and `s3://udacity-dend/log_data` respectively. In this area the data is in its original format and, as one can imagine, it is necessary to implement an Extract-Transform-Load (ETL) pipeline to put the data into the desired shape and within the target place. In the next section, a detailed description of the applied ETL procedure is provided. Below you can find the internal schema of each table present in the staging area.
 
-#### Data Warehouse area
+##### `staging_songs` fact table
 
-The DW area is the final location of the input data. In there, the song and log data will be organized in a [normalized form](https://en.wikipedia.org/wiki/Database_normalization) with the shape of a [star-schema](https://www.guru99.com/star-snowflake-data-warehousing.html). A database designed with a star-shaped schema is built around the so-called fact-table that in our case contains information of the songs played. Around the fact table we will find the dimension tables that are used to store descriptive material like, for example, for example, artist or user data. Below you can find below the schema of each table present in the DW area.
+```
+artist_id VARCHAR,
+artist_latitude FLOAT,
+artist_location VARCHAR,
+artist_longitude FLOAT,
+artist_name VARCHAR,
+duration FLOAT,
+num_songs INT,
+song_id VARCHAR,
+title VARCHAR,
+year INT
+```
+
+##### `staging_events` dimension table
+
+```
+artist VARCHAR,
+auth VARCHAR,
+firstName VARCHAR,
+gender VARCHAR,
+itemInSession INT,
+lastName VARCHAR,
+length FLOAT,
+level VARCHAR,
+location VARCHAR,
+method VARCHAR,
+page VARCHAR,
+registration BIGINT,
+sessionId INT,
+song VARCHAR,
+status INT,
+ts BIGINT,
+userAgent VARCHAR,
+userId INT
+```
+
+#### Reporting area
+
+The reporting area is the final location of the input data and it is the place where the Analyticts team will work. The song and log data will be organized in the so-called [normalized form](https://en.wikipedia.org/wiki/Database_normalization) with the shape of a [star-schema](https://www.guru99.com/star-snowflake-data-warehousing.html). A database designed with a star-shaped schema is built around the a fact-table that in our case contains information of the songs played by the customers. The fact table will connect to the dimension tables by means of foreign keys. The dimension tables are used to store descriptive information like, for example, the song, artist or user details. 
+Below you can find the internal schema of each table present in the reporting area.
 
 ##### `songplays` fact table
 
 ```
-songplay_id SERIAL PRIMARY KEY,
-start_time BIGINT, 
+songplay_id INT IDENTITY(1,1),
+start_time TIMESTAMP, 
 user_id INT, 
 level VARCHAR, 
 song_id VARCHAR, 
 artist_id VARCHAR, 
 session_id INT, 
 location VARCHAR, 
-user_agent VARCHAR
+user_agent VARCHAR,
+PRIMARY KEY (songplay_id),
+FOREIGN KEY (user_id) REFERENCES users(user_id),
+FOREIGN KEY (song_id) REFERENCES songs(song_id),
+FOREIGN KEY (artist_id) REFERENCES artists(artist_id),
+FOREIGN KEY (start_time) REFERENCES time(start_time)
 ```
 
 ##### `artist` dimension table
 
 ```
-artist_id VARCHAR PRIMARY KEY,
+artist_id VARCHAR,
 artist_name VARCHAR,
 artist_location VARCHAR,
 artist_latitude INT,
-artist_longitude INT
+artist_longitude INT,
+PRIMARY KEY (artist_id)
 ```
 
 #### `song` dimension table
 
 ```
-song_id VARCHAR PRIMARY KEY,
+song_id VARCHAR,
 title VARCHAR,
 artist_id VARCHAR,
 year INT,
-duration FLOAT
+duration FLOAT,
+PRIMARY KEY (song_id)
 ```
 
 ##### `time` dimension table
 
 ```
-start_time BIGINT PRIMARY KEY,
+start_time TIMESTAMP,
 hour INT,
 day INT,
 week INT,
 month INT,
 year INT,
-weekday INT
+weekday INT,
+PRIMARY KEY (start_time)
 ```
 
 ##### `user` dimension table
 
 ```
-user_id INT PRIMARY KEY,
+user_id INT,
 first_name VARCHAR,
 last_name VARCHAR,
 gender VARCHAR,
-level VARCHAR
+level VARCHAR,
+PRIMARY KEY (user_id)
 ```
-
-Below you can find an the relation between the dimensions and fact tables that produces the aforementioned star-schema.
-
-![](./star.png)
 
 ### Extract-Transform-Load (ETL) pipeline
 
