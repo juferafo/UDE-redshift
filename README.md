@@ -218,7 +218,9 @@ IamRoles: arn:aws:iam::273305144712:role/dwhRole
 
 Please wait for the deployment of the Redshift cluster before running any other script. 
 
-#### Generation of the DW star-schema
+#### Creation of the DW tables
+
+Once the cluster is ready, we will use the code `./create_tables.py` to generate the tables present in both Staging and Report areas. The creation of these tables is done by means of [CREATE](https://www.postgresql.org/docs/10/sql-createtable.html) DDL statements that can be inspected in the file `sql_queries.py`. As a measure of caution, before any the CREATE operations are carried out, [DROP TABLE](https://www.postgresql.org/docs/10/sql-droptable.html) statements are executed for each table in the DW. The script `./create_tables.py` can be used to reset the DW since it will remove all the data.
 
 #### Extract
 
