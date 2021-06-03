@@ -222,23 +222,23 @@ Please wait for the deployment of the Redshift cluster before running any other 
 
 Once the cluster is ready, we will use the code `./create_tables.py` to generate the tables present in both Staging and Report areas. The creation of these tables is done by means of [CREATE](https://www.postgresql.org/docs/10/sql-createtable.html) DDL statements that can be inspected in the file `sql_queries.py`. As a measure of caution, before any the CREATE operations are carried out, [DROP TABLE](https://www.postgresql.org/docs/10/sql-droptable.html) statements are executed for each table in the DW. The script `./create_tables.py` can be used to reset the DW since it will remove all the data.
 
-#### Extract
+#### ETL pipeline
 
-#### Transform
+The ETL pipeline is encapsulated in the script `./etl.py`. As mentioned earlier the goal of this script is two-fold:
 
-#### Load
+1. To bring the raw data located in S3 into the Staging area.
+2. To re-organize the raw data into a sar-shaped schema.
 
-### Sample queries
+Similarly to the previous scripts, `./etl.py` makes use of the methods written in `./lib.py`to automatize certain tasks like, for example, reading configuration data from `./dwh.config`. The `main`method of `./etl.py` is divided according to the steps above and, conceptually, it can be reduced to two independent methods:
+
+1. `load_staging_tables` that carries out the task of loading the data from S3 to Redshift. For this purpose, the `psycopg2` library is employed in order to stablish a connection to the DW. For efficiency, the command [COPY](https://docs.aws.amazon.com/redshift/latest/dg/r_COPY.html) to ingest the data.
+2. `insert_tables`that makes use of the SQL [INSERT](https://www.postgresql.org/docs/13/sql-insert.html) statements present in `./sql_queries.py`to distribute the raw data in the Reporting area.
+
+Once the ETL procedure has been executed we will see the data loaded in both areas of the DW and ready to query.
 
 ### Cleanup
 
-```
-$ python ./aws_cleanup.py 
-IAM policy arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess detached from the role dwhRole
-IAM role dwhRole deleted
-
-Redshift cluster dwhCluster deleted
-```
+The script `./aws_cleanup.py`is available for the users to tear down the AWS-related resources deployed in this repository. This way, unwanted charges will be avoided.
 
 ## Requirements
 
