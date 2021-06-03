@@ -47,7 +47,7 @@ def main():
     # To be done by the developer/user of this code: 
     # Edit the configuration file ./dwh.cfg according to your use-case
     # REMEMBER TO NOT EXPOSE LIVE TOKENS/PASSWORDS IN GIT/GITHUB!
-    config_path = "../dwh.cfg"
+    config_path = "./dwh.cfg"
 
     # the aws_config and aws classes can be found in the file lib.py
     config = aws_config(config_path)

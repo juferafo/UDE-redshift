@@ -216,7 +216,7 @@ ClusterIdentifier: dwhCluster
 IamRoles: arn:aws:iam::273305144712:role/dwhRole
 ```
 
-Please wait for the deployment of the Redshift cluster before running any other script. 
+Please wait until the status of the cluster appears as `Available` in the Redshift web-UI before moving to the next section.
 
 #### Creation of the DW tables
 

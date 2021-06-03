@@ -13,7 +13,7 @@ from lib import iamS3, create_redshift
 from lib import cleanup_iam, cleanup_redshift
     
 # Reading configuration parameters
-config_path = '../dwh.cfg'
+config_path = './dwh.cfg'
 # custom helper method defined in ./lib.py
 config = aws_config(config_path)
 

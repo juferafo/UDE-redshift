@@ -5,7 +5,7 @@ from lib import aws_config, aws
 # To be done by the developer/user of this code: 
 # Edit the configuration file ./dwh.cfg according to your use-case
 # REMEMBER TO NOT EXPOSE LIVE TOKENS/PASSWORDS IN GIT/GITHUB!
-config_path = "../dwh.cfg"
+config_path = "./dwh.cfg"
 config = aws_config(config_path)
 
 # DROP TABLES
